@@ -2,6 +2,7 @@ package main
 
 import (
 	"Scraper/jobs"
+	"Scraper/jobs/glassdoor"
 	"Scraper/jobs/indeed"
 	"Scraper/jobs/jobsdb"
 	"Scraper/jobs/linkedin"
@@ -14,6 +15,7 @@ func main() {
 		indeed.Scraper(),
 		linkedin.Scraper(),
 		jobsdb.Scraper(),
+		glassdoor.Scraper(),
 	}
 
 	var documents []interface{}
