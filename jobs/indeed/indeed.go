@@ -4,6 +4,7 @@ import (
 	"Scraper/jobs"
 	"fmt"
 	"github.com/gocolly/colly/v2"
+	"strings"
 )
 
 type scraper struct {
@@ -17,16 +18,16 @@ func (s scraper) Scrape() (docs []interface{}, err error) {
 	var jobPost jobs.JobPost
 	sourceDomain := "https://sg.indeed.com"
 
-	s.Collector.OnHTML("div.jobsearch-SerpJobCard", func(e *colly.HTMLElement) {
+	s.Collector.OnHTML("div.slider_item", func(e *colly.HTMLElement) {
 
-		jobTitle := e.ChildText("a.jobtitle")
-		companyName := e.ChildText("span.company")
-		location := e.ChildText("span.location")
-		salary := e.ChildText("span.salaryText")
-		summary := e.ChildText("div.summary")
+		jobTitle := strings.TrimLeft(e.ChildText("h2.jobTitle"), "new")
+		companyName := e.ChildText("span.companyName")
+		location := e.ChildText("div.companyLocation")
+		salary := e.ChildText("div.salary-snippet")
+		summary := e.ChildText("div.job-snippet")
 		jobUrl := fmt.Sprintf("%s%s", sourceDomain, e.ChildAttr("a", "href"))
 
-		jobPost =  jobs.JobPost{
+		jobPost = jobs.JobPost{
 			Title:       jobTitle,
 			CompanyName: companyName,
 			Location:    location,
@@ -51,7 +52,7 @@ func (s scraper) Scrape() (docs []interface{}, err error) {
 	}
 
 	for _, page := range pagesToVisit {
-		s.Collector.Visit(page)
+		err = s.Collector.Visit(page)
 		if err != nil {
 			continue
 		}
@@ -60,7 +61,6 @@ func (s scraper) Scrape() (docs []interface{}, err error) {
 	return
 }
 
-
 func Scraper() scraper {
 
 	c := colly.NewCollector(
@@ -68,10 +68,8 @@ func Scraper() scraper {
 	)
 
 	s := scraper{
-		Collector:  c,
+		Collector: c,
 	}
 
 	return s
 }
-
-
