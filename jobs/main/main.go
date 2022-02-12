@@ -32,9 +32,9 @@ func main() {
 		fmt.Printf("%v\n\n", d)
 	}
 
-	err := jobs.SaveToRockset(documents)
-	if err != nil {
-		fmt.Println(err.Error())
-	}
+	//err := jobs.SaveToRockset(documents)
+	//if err != nil {
+	//	fmt.Println(err.Error())
+	//}
 
 }
