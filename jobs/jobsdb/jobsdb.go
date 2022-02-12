@@ -4,6 +4,7 @@ import (
 	"Scraper/jobs"
 	"fmt"
 	"github.com/gocolly/colly/v2"
+	"strings"
 )
 
 type scraper struct {
@@ -15,16 +16,22 @@ func (s scraper) Scrape() (docs []interface{}, err error) {
 	fmt.Println("running jobsdb scraper")
 
 	var jobPost jobs.JobPost
-	sourceDomain := "https://sg.indeed.com"
+	sourceDomain := "https://sg.jobsdb.com"
 
-	s.Collector.OnHTML("div.job", func(e *colly.HTMLElement) {
+	s.Collector.OnHTML("article.job-card", func(e *colly.HTMLElement) {
 
-		jobTitle := e.ChildText("a.jobtitle")
-		companyName := e.ChildText("span.company")
-		location := e.ChildText("span.location")
-		salary := e.ChildText("span.salaryText")
-		summary := e.ChildText("div.summary")
-		jobUrl := fmt.Sprintf("%s%s", "https://sg.jobsdb.com",  e.ChildAttr("a", "href"))
+		jobTitle := e.ChildText("a.job-link")
+		companyName := e.ChildText("span.job-company")
+		location := e.ChildText("span.job-location")
+
+		var salary string
+		badge := strings.TrimLeft(e.ChildText("div.badge"), "new")
+		if strings.ToLower(badge) != "quick apply" {
+			salary = badge
+		}
+
+		summary := e.ChildText("div.job-abstract")
+		jobUrl := fmt.Sprintf("%s%s", "https://sg.jobsdb.com", e.ChildAttr("a", "href"))
 
 		jobPost = jobs.JobPost{
 			Title:       jobTitle,
@@ -48,7 +55,7 @@ func (s scraper) Scrape() (docs []interface{}, err error) {
 	}
 
 	for _, page := range pagesToVisit {
-		s.Collector.Visit(page)
+		err = s.Collector.Visit(page)
 		if err != nil {
 			continue
 		}
@@ -57,15 +64,14 @@ func (s scraper) Scrape() (docs []interface{}, err error) {
 	return
 }
 
-
 func Scraper() scraper {
 
 	c := colly.NewCollector(
-		colly.AllowedDomains("www.indeed.com.sg", "indeed.com.sg", "sg.indeed.com"),
+		colly.AllowedDomains("sg.jobsdb.com"),
 	)
 
 	s := scraper{
-		Collector:  c,
+		Collector: c,
 	}
 
 	return s
